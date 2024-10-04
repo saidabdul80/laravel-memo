@@ -1,0 +1,29 @@
+{
+  "name": "saidabdulsalam/laravel-memo",
+  "description": "A Laravel package for managing memos",
+  "type": "library",
+  "require": {
+    "php": "^8.0",
+    "illuminate/support": "^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Saidabdulsalam\\LaravelMemo\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Saidabdulsalam\\LaravelMemo\\MemoServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "authors": [
+    {
+      "name": "Said Abdulsalam",
+      "email": "your-email@example.com"
+    }
+  ]
+}

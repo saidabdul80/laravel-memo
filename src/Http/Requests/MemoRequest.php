@@ -1,0 +1,27 @@
+<?php
+
+namespace Saidabdulsalam\LaravelMemo\Http\Requests;
+
+use Saidabdulsalam\LaravelMemo\Enums\MemoStatus;
+use Saidabdulsalam\LaravelMemo\Enums\MemoType;
+use Illuminate\Foundation\Http\FormRequest;
+
+class MemoRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:' . implode(',', MemoType::getKeys()),
+            'content' => 'required|string',
+            'status' => 'required|in:' . implode(',', MemoStatus::getKeys()),
+            'approvers' => 'array',
+            'approvers.*' => 'integer|exists:users,id',
+        ];
+    }
+}
