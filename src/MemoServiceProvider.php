@@ -19,15 +19,19 @@ class MemoServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
+
+        // Publish the configuration file
+        $this->publishes([
+            __DIR__.'/config/laravel-memo.php' => config_path('memo.php'),
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ], 'memo-config');
+
         // Load the migrations
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         // Load the routes
         $this->loadRoutesFrom(__DIR__ . '/routes/api.php');
 
-        // Publish the config file
-        $this->publishes([
-            __DIR__ . '/../config/memo.php' => config_path('memo.php'),
-        ]);
     }
 }
