@@ -1,6 +1,6 @@
 <?php
 
-namespace Saidabdulsalam\LaravelMemo\Memo\Http\Controllers;
+namespace Saidabdulsalam\LaravelMemo\Http\Controllers;
 
 use Saidabdulsalam\LaravelMemo\Models\Memo;
 use Saidabdulsalam\LaravelMemo\Http\Requests\MemoRequest;
