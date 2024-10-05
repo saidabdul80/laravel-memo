@@ -8,4 +8,5 @@ Route::prefix('api/memos')->group(function () {
     Route::post('/create-or-update/{id?}', [MemoController::class, 'createOrUpdateMemo']);
     Route::get('/statuses', [MemoController::class, 'memoStatus']);
     Route::get('/types', [MemoController::class, 'memoTypes']);
+    Route::get('/members', [MemoController::class, 'members']);
 });

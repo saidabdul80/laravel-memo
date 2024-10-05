@@ -23,6 +23,27 @@ class MemoController extends Controller
         return MemoResource::collection($memos);
     }
 
+    public function members(Request $request){
+       
+            // Get models from config
+            $models = config('memo.models');
+            $names = config('memo.name');
+            $mergedData = [];
+    
+            foreach ($models as $key=> $model) {
+                $name = $names[$key];
+                $data = $model::selectRaw("$name as full_name, id, '$model' as approver_type ")->paginate(config('memo.pagination_length'));
+    
+                $mergedData = array_merge($mergedData, $data->items());
+            }
+    
+            return response()->json([
+                'data' => $mergedData,
+                'meta' => $data->meta
+            ]);
+        
+    }
+
     public function createOrUpdateMemo(MemoRequest $request)
     {
         $id =  $request->id;
