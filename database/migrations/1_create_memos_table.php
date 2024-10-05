@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('owner_type');
             $table->string('title');
             $table->tinyInteger('type')->default(0);
+            $table->text('files'); 
             $table->text('content');
             $table->timestamps();
             $table->tinyInteger('status')->default(0);
