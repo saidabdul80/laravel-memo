@@ -9,7 +9,7 @@ use Saidabdulsalam\LaravelMemo\Traits\Filterable;
 class Memo extends Model
 {
     use Filterable;
-    protected $fillable = ['title', 'type', 'content', 'status', 'user_id'];
+    protected $fillable = ['title', 'type', 'content', 'status', 'owner_id', 'owner_type'];
 
     
     public function approvers()

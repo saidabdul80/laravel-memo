@@ -1,7 +1,7 @@
 <?php
 
-namespace YourVendor\Memo\Enums;
-
+namespace Saidabdulsalam\LaravelMemo\Enums;
+use Saidabdulsalam\LaravelMemo\Enums\MethodsTrait;
 enum MemoType: int
 {
     use MethodsTrait;

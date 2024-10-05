@@ -1,7 +1,6 @@
 <?php
 
-namespace Saidabdulsalam\LaravelMemo\Traits;
-
+namespace Saidabdulsalam\LaravelMemo\Enums;
 trait MethodsTrait
 {
     public static function getKey($value)

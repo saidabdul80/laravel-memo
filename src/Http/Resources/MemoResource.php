@@ -19,6 +19,7 @@ class MemoResource extends JsonResource
             'content' => $this->content,
             'status' => MemoStatus::getKey($this->status),
             'approvers' => $this->approvers,
+            'comments' => $this->comments,
             'owner' => $this->owner,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
