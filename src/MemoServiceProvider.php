@@ -23,7 +23,7 @@ class MemoServiceProvider extends ServiceProvider
 
         // Publish the configuration file
         $this->publishes([
-            __DIR__.'/config/memo.php' => config_path('memo.php'),
+            __DIR__.'/../config/memo.php' => config_path('memo.php'),
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'memo-config');
 
