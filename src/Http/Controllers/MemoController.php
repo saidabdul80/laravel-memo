@@ -21,12 +21,14 @@ class MemoController extends Controller
     public function createOrUpdateMemo(MemoRequest $request, $id = null)
     {
         $memo = $id ? Memo::findOrFail($id) : new Memo();
-
+        $owner = auth()->user(); 
         if ($memo->status === MemoStatus::APPROVED) {
             abort(422, 'Not allowed to update an approved memo.');
         }
 
         $data = $request->validated();
+        $data['owner_id'] = $owner->id;
+        $data['owner_type'] = get_class($owner);
         $memo->fill($data);
         $memo->save();
 

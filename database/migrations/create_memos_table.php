@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('memos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('owner_id');
+            $table->string('owner_type');
             $table->string('title');
             $table->tinyInteger('type')->default(0);
             $table->text('content');

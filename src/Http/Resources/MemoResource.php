@@ -12,12 +12,14 @@ class MemoResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
+            'owner_id' => $this->owner_id,
+            'owner_type' => $this->owner_type,
             'title' => $this->title,
             'type' => MemoType::getKey($this->type),
             'content' => $this->content,
             'status' => MemoStatus::getKey($this->status),
             'approvers' => $this->approvers,
+            'owner' => $this->owner,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
