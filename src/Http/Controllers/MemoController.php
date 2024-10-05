@@ -101,15 +101,17 @@ class MemoController extends Controller
         }
     }
 
+   
     public function memoStatus()
     {
-        return response()->json(MemoStatus::getKeys());
+        return response()->json(collect(MemoStatus::getKeys())->keys());
     }
 
     public function memoTypes()
     {
-        return response()->json(MemoType::getKeys());
+        return response()->json(collect(MemoType::getKeys())->keys());
     }
+
 
     public function approveMemo($id)
     {
