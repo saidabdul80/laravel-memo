@@ -10,6 +10,7 @@ use Saidabdulsalam\LaravelMemo\Enums\MemoType;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Saidabdulsalam\LaravelMemo\Events\MemoApproved;
+use Saidabdulsalam\LaravelMemo\Events\MemoComment;
 use Saidabdulsalam\LaravelMemo\Events\MemoCreated;
 use Saidabdulsalam\LaravelMemo\Events\MemoRejected;
 use Saidabdulsalam\LaravelMemo\Events\MemoUpdated;
@@ -17,91 +18,262 @@ use Saidabdulsalam\LaravelMemo\Models\Comment;
 
 class MemoController extends Controller
 {
+
+    public function boot(Request $request){
+        $user = $request->user();
+        $models = config('memo.members_models', []);
+        $names = config('memo.name', []);
+        $name = '';
+        $user_type = get_class($user);
+        foreach ($models as $key => $model) {
+            if($model == $user_type){
+                $name = $names[$key];
+                break;
+            }
+        }
+        return response()->json([
+            "user"=>['id'=> $user->id, 'user_type'=>$user_type, 'full_name'=>$user->{$name}]
+        ]);
+    }
+
     public function index(Request $request)
     {
-        $memos = Memo::latest()->paginate(config('memo.pagination_length'));
+        $filter = $request->all();
+        // if(isset($filter['my_memo'])){
+        //     $query = [
+        //         $request->user()->id,
+        //         get_class($request->user()),
+        //     ];
+
+        //     if($filter['my_memo']){
+        //         $filter['my_memo'] =  $query;
+        //         $filter['my_memo'][] =  true;
+        //     }else{
+        //         $filter['my_memo'] =  $query;
+        //         $filter['my_memo'][] = false;
+        //     }
+        // }
+        $user = $request->user();
+        if(isset($filter['category'])){
+            $filter[strtolower($filter['category'])] = [
+                "owner_id" => $user->id,
+                "owner_type" => get_class($user)
+            ];
+        }
+        $memos = Memo::filter($filter)->latest()->paginate(config('memo.pagination_length'));
         return MemoResource::collection($memos);
     }
 
     public function members(Request $request){
        
-            // Get models from config
-            $models = config('memo.models');
-            $names = config('memo.name');
-            $mergedData = [];
-    
-            foreach ($models as $key=> $model) {
-                $name = $names[$key];
-                $data = $model::selectRaw("$name as full_name, id, '$model' as approver_type ")->paginate(config('memo.pagination_length'));
-    
-                $mergedData = array_merge($mergedData, $data->items());
+        // Get models from config
+        $models = config('memo.members_models', []); // Default to an empty array
+        $names = config('memo.name', []); // Default to an empty array
+        $filters = config('memo.members_models_filters', []); // Default to an empty array
+        $mergedData = [];
+
+        foreach ($models as $key => $model) {
+            // Check if the model class exists
+            if (!class_exists($model)) {
+                continue; // Skip this iteration if the model does not exist
             }
-    
-            return response()->json([
-                'data' => $mergedData,
-                'meta' => $data->meta
-            ]);
+            
+            $name = $names[$key] ?? null; // Use null coalescing to prevent undefined index error
+            
+            // Check if filter is set and valid
+            $filter = $filters[$key] ?? null;
+
+            // Fetch data based on filter
+            if ($filter && is_array($filter)) {
+                // Make sure the filter is an array
+                $data = $model::where($filter)->get();
+            } else {
+                $data = $model::all();
+            }
+
+            // Merge the data while ensuring we have a valid name
+            $mergedData = array_merge($mergedData, $data->map(function ($m) use ($model, $name) {
+                return [
+                    "approver_id" => $m->id,
+                    "approver_type" => $model,
+                    "full_name" => $name ? $m->{$name} : null, // Safely access the property
+                ];
+            })->toArray());
+        }
+
+        return response()->json($mergedData);
+
+            // return response()->json([
+            //     'data' => $mergedData,
+            //     'meta' => [
+            //         'current_page' => $data->currentPage(),
+            //         'last_page' => $data->lastPage(),
+            //         'per_page' => $data->perPage(),
+            //         'next_page_url'=>$data->nextPageUrl(),
+            //         'next_prev_url'=>$data->previousPageUrl(),
+            //         'total' => $data->total(),
+            //     ],
+            // ]);
         
+    }
+
+    public function departments(){
+        $model  = config('memo.department_model');
+        return response()->json($model::all());
+    }
+
+    public function saveComment(Request $request)
+    {
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'memo_id'=>'required',
+            'comment' => 'required|string',
+            'files' => 'nullable|string',
+            'approver_id' => 'nullable|integer',
+            'approver_type' => 'nullable|integer',
+        ]);
+
+        // Find the memo by ID
+        $memo = Memo::findOrFail($request->memo_id);
+
+        // Create the comment data array
+        $commentData = [
+            'memo_id' => $memo->id,
+            'comment' => $validated['comment'],
+            'files' => $validated['files'] ?? null,
+            'status' => MemoStatus::SUBMITTED, // default status
+        ];
+
+        // Check if the comment is from the memo owner
+        if ($request->user()->id !== $memo->owner_id) {
+            $commentData['approver_id'] = null;
+            $commentData['approver_type'] = null;
+        }
+
+        // Create the comment
+        Comment::create($commentData);
+        event(new MemoComment($memo, $request->user()));
+        // Return a response
+        return response()->json([
+            'message' => 'Comment saved successfully',
+        ], 201);
     }
 
     public function createOrUpdateMemo(MemoRequest $request)
     {
-        $id =  $request->id;
-        $memo = $id ? Memo::findOrFail($id) : new Memo();
-        $owner = auth()->user(); 
-        if ($memo->status === MemoStatus::APPROVED) {
-            abort(422, 'Not allowed to update an approved memo.');
-        }
-
+        $id = $request->id;
+        $owner = $request->user();
         $data = $request->validated();
         $data['owner_id'] = $owner->id;
         $data['owner_type'] = get_class($owner);
-        $memo->fill($data);
-        $memo->save();
-
-        $this->manageApprovers($memo, $request->input('approvers', []));
-
-        $memo = $memo->fresh();
-
+    
         if ($id) {
-            event(new MemoUpdated($memo));
+            // Update existing memo
+            $memo = Memo::findOrFail($id);
+            $user = $request->user();
+            $is_memo_owner = ($user->id == $memo->owner_id && $memo->owner_type == get_class($user));
+    
+            if ($memo->status === MemoStatus::APPROVED) {
+                if($is_memo_owner){
+                    abort(422, 'Not allowed to update an approved memo.');
+                }
+            }
+         
+            if($is_memo_owner){
+                $memo->update([
+                    "title" =>  $request->title,
+                    "content" =>  $request->content,
+                    "department_id" =>  $request->department_id,
+                    "status" =>  MemoStatus::getValue($request->status) ?? MemoStatus::SUBMITTED,
+                    "type" => MemoType::getValue($request->type) ?? MemoType::REQUEST,
+                ]);
+                event(new MemoUpdated($memo));
+            }
+            
+            $this->manageApprovers($memo, $request->input('approvers', []), $is_memo_owner, $request);
+
         } else {
+            // Create new memo
+            $memo = new Memo();
+            $memo->fill($data);
+            $memo->status = MemoStatus::getValue($request->status) ?? MemoStatus::SUBMITTED;
+            $memo->type = MemoType::getValue($request->type) ?? MemoType::REQUEST;
+            $memo->save();
+            $this->manageApprovers($memo, $request->input('approvers', []),true, $request);
             event(new MemoCreated($memo));
         }
-
+       
+        
+    
+        // Refresh memo
+        $memo = $memo->fresh();
+       
+       
+    
+        // if (!$id && $is_memo_owner && (MemoStatus::DRAFT == $memo->status || MemoStatus::SUBMITTED == $memo->status)) {
+        //     $memo->save();
+        // }
+    
         return new MemoResource($memo);
     }
-
-    protected function manageApprovers(Memo $memo, array $approvers)
+    
+    protected function manageApprovers(Memo $memo, array $approvers, $is_memo_owner = true,  $request)
     {
-        
         $existingApprovers = $memo->approvers()
-            ->get(['approver_id', 'approver_type'])
+            ->get(['id', 'approver_id', 'approver_type'])
             ->map(function ($approver) {
-                return ['id' => $approver->approver_id, 'type' => $approver->approver_type];
+                return [
+                    'id' => $approver->id,
+                    'approver_id' => $approver->approver_id,
+                    'approver_type' => $approver->approver_type,
+                ];
             })
             ->toArray();
-
+    
+        $approverIds = array_column($approvers, 'id');
+        $existingApproverIds = array_column($existingApprovers, 'id');
+    
         foreach ($approvers as $approver) {
-            if (!in_array(['id'=>$approver['id'], 'approver_type'=>$approver['approver_type']], $existingApprovers, true) && class_exists($approver['approver_type'])) {
-                $memo->approvers()->create([
-                    'approver_id' => $approver['id'],
-                    'approver_type' => $approver['type'],
-                ]);
+            if (isset($approver['id'])) {
+                // Update the existing approver
+                
+                $memo->approvers()
+                    ->where('id', $approver['id'])
+                    ->update([
+                        'status'=> MemoStatus::getValue($approver['status']?? "PENDING")?? MemoStatus::PENDING
+                    ]);
+                if(!$is_memo_owner){
+                    if($approver['status'] == 'APPROVED'){
+                        event(new MemoApproved($memo,$request->user()));
+                    }else if($approver['status'] == 'REJECTED'){
+                        
+                        event(new MemoRejected($memo,$request->user()));
+                    }
+                }
+                //$this->checkAllApprovers($approver, $request->user());
+            } else {
+                // Add new approver if it does not exist
+                if (!in_array(['approver_id' => $approver['approver_id'], 'approver_type' => $approver['approver_type']], $existingApprovers, true) && class_exists($approver['approver_type']) && $is_memo_owner) {
+                    $memo->approvers()->create([
+                        'approver_id' => $approver['approver_id'],
+                        'approver_type' => $approver['approver_type'],
+                        'status'=> MemoStatus::getValue($approver['status']??"PENDING")?? MemoStatus::PENDING
+                    ]);
+                }
             }
         }
     
-        foreach ($existingApprovers as $existingApprover) {
-            if (!in_array($existingApprover, $approvers, true)) {
-                $memo->approvers()
-                    ->where('approver_id', $existingApprover['id'])
-                    ->where('approver_type', $existingApprover['type'])
-                    ->delete();
+        if ($is_memo_owner) {
+            // Delete existing approvers that are not in the new list of approvers
+            foreach ($existingApprovers as $existingApprover) {
+                if (!in_array($existingApprover['id'], $approverIds, true)) {
+                    $memo->approvers()->where('id', $existingApprover['id'])->delete();
+                }
             }
         }
     }
+    
 
-   
     public function memoStatus()
     {
         return response()->json(collect(MemoStatus::getKeys())->keys());
@@ -111,7 +283,6 @@ class MemoController extends Controller
     {
         return response()->json(collect(MemoType::getKeys())->keys());
     }
-
 
     public function approveMemo($id)
     {
@@ -168,8 +339,8 @@ class MemoController extends Controller
         $memo->save();
 
         // Get the approver details
-        $approver_id = auth()->id();
-        $approver_type = get_class(auth()->user());
+        $approver_id = $request->user()->id();
+        $approver_type = get_class($request->user());
 
         // Handle comments
         $existingComments = $memo->comments()
@@ -206,9 +377,9 @@ class MemoController extends Controller
         $memo = $memo->fresh();
 
         if($status === MemoStatus::APPROVED){
-            event(new MemoApproved($memo,auth()->user()));
+            event(new MemoApproved($memo,$request->user()));
         }else{
-            event(new MemoRejected($memo,auth()->user()));
+            event(new MemoRejected($memo,$request->user()));
         }
         // Return the updated memo resource
         return new MemoResource($memo); // Use fresh() to get the updated instance

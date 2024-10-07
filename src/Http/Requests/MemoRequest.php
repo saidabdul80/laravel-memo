@@ -17,11 +17,11 @@ class MemoRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'type' => 'required|in:' . implode(',', MemoType::getKeys()),
+            'department_id'=>'nullable',
+            //'type' => 'sometimes|in:' . implode(',', MemoType::getKeys()),
             'content' => 'required|string',
-            'status' => 'required|in:' . implode(',', MemoStatus::getKeys()),
-            'approvers' => 'array',
-            'approvers.*' => 'integer|exists:users,id',
+            //'status' => 'sometimes|in:' . implode(',', MemoStatus::getKeys()),
+            'approvers' => 'array|nullable'
         ];
     }
 }

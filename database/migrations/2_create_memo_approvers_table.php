@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('memo_id')->constrained('memos')->onDelete('cascade');
             $table->bigInteger('approver_id');
+            $table->bigInteger('approver_type');
             $table->tinyInteger('status')->default(4);
             $table->timestamps();
         });
