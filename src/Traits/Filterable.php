@@ -33,6 +33,11 @@ trait Filterable
         return $query->where('title', 'LIKE', "%$title%");
     }
 
+    protected function filterSearch(Builder $query, $value)
+    {
+        return $query->where('title', 'LIKE', "%$value%")->orWhere('content', 'LIKE', "%$value%");
+    }
+
     protected function filterStatus(Builder $query, $value)
     {
         return $query->where('status', MemoStatus::getValue($value));
@@ -93,5 +98,11 @@ trait Filterable
                             $q->where('approver_type', $val["owner_type"])->where('approver_id', $val['owner_id']);
                         });
                     });
+                    // ->with(['comments'=>function($query) use($val){
+                    //     //$query->memo->owner_id == $query->approver_id && $query->memo->owner_type == $query->approver_type; 
+                    //     $query->where(function($q) use($val){
+                    //         $q->where('approver_type', $val["owner_type"])->where('approver_id', $val['owner_id']);
+                    //     });
+                    // }]);
     }
 }

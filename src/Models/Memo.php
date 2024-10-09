@@ -5,17 +5,17 @@ namespace Saidabdulsalam\LaravelMemo\Models;
 use App\Enums\MemoStatus;
 use Illuminate\Database\Eloquent\Model;
 use Saidabdulsalam\LaravelMemo\Casts\ArrayCast;
-use Saidabdulsalam\LaravelMemo\Events\MemoApproved;
+use Saidabdulsalam\LaravelMemo\Traits\DateTime;
 use Saidabdulsalam\LaravelMemo\Traits\Filterable;
 class Memo extends Model
 {
-    use Filterable;
+    use Filterable, DateTime;
     protected $fillable = ['title', 'type', 'content', 'status', 'owner_id', 'owner_type','department_id'];
 
     protected $casts =[
         'department_id'=>ArrayCast::class
     ];
-    protected $appends = ['departments'];
+    protected $appends = ['departments', 'time_at'];
 
     public static function boot()
     {
@@ -51,7 +51,7 @@ class Memo extends Model
             // }
         });
     }
-    
+
     public function updateStatus($save)
     {
         if ($this->exists) {
@@ -96,5 +96,9 @@ class Memo extends Model
             return $model::whereIn('id', $this->department_id??[])->pluck('name');
         }
         return [];
+    }
+
+    public function comments(){
+        return $this->hasMany(Comment::class, 'memo_id');
     }
 }

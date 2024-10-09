@@ -19,6 +19,7 @@ class ApproverResource extends JsonResource
             'memo_id' => $this->memo_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+          //  'comments' => $this->comments,
         ];
     }
 }

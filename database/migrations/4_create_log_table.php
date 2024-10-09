@@ -8,13 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('memo_comments', function (Blueprint $table) {
+        Schema::create('memo_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('memo_id')->constrained()->onDelete('cascade');
-            $table->text('comment'); 
-            $table->text('department_id')->nullable();
-            $table->tinyInteger('type')->nullable();
-            $table->text('files')->nullable(); 
+            $table->foreignId('memo_id')->constrained()->onDelete('cascade'); 
             $table->bigInteger('approver_id');
             $table->string('approver_type');
             $table->tinyInteger('status')->default(4);
@@ -25,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('memo_comments');
+        Schema::dropIfExists('memo_logs');
     }
 };

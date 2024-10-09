@@ -15,6 +15,7 @@ use Saidabdulsalam\LaravelMemo\Events\MemoCreated;
 use Saidabdulsalam\LaravelMemo\Events\MemoRejected;
 use Saidabdulsalam\LaravelMemo\Events\MemoUpdated;
 use Saidabdulsalam\LaravelMemo\Models\Comment;
+use Saidabdulsalam\LaravelMemo\Models\MemoLog;
 
 class MemoController extends Controller
 {
@@ -125,31 +126,34 @@ class MemoController extends Controller
     public function saveComment(Request $request)
     {
         // Validate the incoming request data
+        
         $validated = $request->validate([
             'memo_id'=>'required',
             'comment' => 'required|string',
             'files' => 'nullable|string',
-            'approver_id' => 'nullable|integer',
-            'approver_type' => 'nullable|integer',
+            // '[approver_id]' => 'nullable|integer',
+            // 'approver_type' => 'nullable|integer',
         ]);
 
         // Find the memo by ID
         $memo = Memo::findOrFail($request->memo_id);
-
+        $user = $request->user();
         // Create the comment data array
         $commentData = [
             'memo_id' => $memo->id,
             'comment' => $validated['comment'],
             'files' => $validated['files'] ?? null,
             'status' => MemoStatus::SUBMITTED, // default status
+            "approver_id"=>  $user->id,
+            "approver_type"=>  get_class($user)
         ];
 
         // Check if the comment is from the memo owner
-        if ($request->user()->id !== $memo->owner_id) {
-            $commentData['approver_id'] = null;
-            $commentData['approver_type'] = null;
-        }
-
+        // if ($user->id !== $memo->owner_id) {
+        //     $commentData['approver_id'] = null;
+        //     $commentData['approver_type'] = null;
+        // }
+       
         // Create the comment
         Comment::create($commentData);
         event(new MemoComment($memo, $request->user()));
@@ -180,14 +184,17 @@ class MemoController extends Controller
             }
          
             if($is_memo_owner){
-                $memo->update([
-                    "title" =>  $request->title,
-                    "content" =>  $request->content,
+                $comment = Comment::create([
+                    'memo_id'=> $memo->id,
+                    'comment'=> $request->content,
+                    'approver_id'=>$user->id,
+                    'approver_type'=> get_class($user),
                     "department_id" =>  $request->department_id,
-                    "status" =>  MemoStatus::getValue($request->status) ?? MemoStatus::SUBMITTED,
                     "type" => MemoType::getValue($request->type) ?? MemoType::REQUEST,
                 ]);
-                event(new MemoUpdated($memo));
+                // $memo->update([
+                // ]);
+                event(new MemoUpdated($comment));
             }
             
             $this->manageApprovers($memo, $request->input('approvers', []), $is_memo_owner, $request);
@@ -240,8 +247,16 @@ class MemoController extends Controller
                 $memo->approvers()
                     ->where('id', $approver['id'])
                     ->update([
-                        'status'=> MemoStatus::getValue($approver['status']?? "PENDING")?? MemoStatus::PENDING
+                        'status'=> MemoStatus::getValue($approver['status']?? "PENDING") ?? MemoStatus::PENDING
                     ]);
+
+                MemoLog::create([
+                    'memo_id'=>$memo->id,
+                    'approver_id'=> $approver['approver_id'],
+                    'approver_type'=> $approver['approver_type'],
+                    'status' => MemoStatus::getValue($approver['status']?? "PENDING") ?? MemoStatus::PENDING, 
+                ]);
+
                 if(!$is_memo_owner){
                     if($approver['status'] == 'APPROVED'){
                         event(new MemoApproved($memo,$request->user()));
