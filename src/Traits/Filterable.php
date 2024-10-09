@@ -40,6 +40,9 @@ trait Filterable
 
     protected function filterStatus(Builder $query, $value)
     {
+        if($value == 'ALL'){
+            return $query;
+        }
         return $query->where('status', MemoStatus::getValue($value));
     }
 
