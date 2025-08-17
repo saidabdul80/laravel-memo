@@ -201,7 +201,7 @@ class MemoController extends Controller
                     'comment'=> "Memo content updated",
                     'approver_id'=>$user->id,
                     'approver_type'=> get_class($user),
-                    "department_id" =>  $request->department_id,
+                    "department_id" =>  $this->cleanNullValues($request->department_id),
                     "type" => MemoType::getValue($request->type) ?? MemoType::REQUEST,
                 ]);
                 event(new MemoUpdated($memo));
@@ -215,8 +215,8 @@ class MemoController extends Controller
             $memo->fill($data);
             $memo->status = MemoStatus::getValue($request->status) ?? MemoStatus::SUBMITTED;
             $memo->type = MemoType::getValue($request->type) ?? MemoType::REQUEST;
-            $memo->department_id = $owner->{config('memo.user_department_id_column')};
-            $memo->office_id = $owner->{config('memo.user_office_id_column')};
+            $memo->department_id = $this->cleanNullValues($request->department_id) ?? $owner->{config('memo.user_department_id_column')};
+            $memo->office_id = $this->cleanNullValues($owner->{config('memo.user_office_id_column')});
             $memo->save();
             $this->manageApprovers($memo, $request->input('approvers', []),true, $request);
             event(new MemoCreated($memo));
@@ -236,6 +236,14 @@ class MemoController extends Controller
         return (new MemoResource($memo))
             ->response()
             ->setStatusCode($id ? 200 : 201);
+    }
+
+    protected function cleanNullValues($value)
+    {
+         if ($value =='null') {
+            return null;
+        }
+        return intval($value);
     }
     
     protected function manageApprovers(Memo $memo, array $approvers, $is_memo_owner = true,  $request)
