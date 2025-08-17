@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('files')->nullable(); 
             $table->bigInteger('approver_id');
             $table->string('approver_type');
+            $table->tinyInteger('forwarded')->default(0);
             $table->tinyInteger('status')->default(4);
             $table->timestamps();
         });

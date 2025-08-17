@@ -1,77 +1,76 @@
-# Laravel Memo
+# Laravel Memo Package
 
-A simple Laravel package for managing memos with support for approvers and customizable configurations.
+A configurable Laravel package for managing memos, designed to be integrated into existing Laravel applications.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Usage](#usage)
-- [Routes](#routes)
-- [Contributing](#contributing)
-- [License](#license)
+- [API Endpoints](#api-endpoints)
+- [Events](#events)
 
 ## Installation
 
-To install the package, run the following command:
+Install the package using Composer:
 
 ```bash
 composer require saidabdulsalam/laravel-memo
 ```
-After installation, register the service provider in your config/app.php (if you're not using package auto-discovery):
 
-```
-'providers' => [
-    // Other service providers...
-    Saidabdulsalam\LaravelMemo\MemoServiceProvider::class,
-],
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=laravel-memo-config
 ```
 
-### Configuration
-```php artisan vendor:publish --tag=laravel-memo-config```
+Run the database migrations:
 
+```bash
+php artisan migrate
+```
 
-## Memo Functionality Documentation
+## Configuration
 
-### Usage
+The configuration file (`config/memo.php`) allows you to customize the package to fit your application's needs.
 
-#### Creating and Updating Memos
-To create or update a memo, utilize the `createOrUpdateMemo` method in the `MemoController`. This method validates the input using `MemoRequest`.
+| Option                        | Type      | Default                     | Description                                                                                             |
+| ----------------------------- | --------- | --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pagination_length`           | `Integer` | `15`                        | The number of memos to display per page.                                                                |
+| `members_models`              | `Array`   | `[App\User::class]`         | An array of models to be used for users/members.                                                        |
+| `office_model`                | `Array`   | `[App\Office::class]`       | The model to be used for offices.                                                                       |
+| `name`                        | `Array`   | `['full_name']`             | The column name(s) to be used for the user's full name.                                                 |
+| `department_model`            | `String`  | `App\Models\Department::class` | The model to be used for departments.                                                                   |
+| `role_column_name`            | `String`  | `'role_id'`                 | The column name on the user model that stores the user's role.                                          |
+| `user_department_id_column`   | `String`  | `'department_id'`           | The column name on the user model that stores the user's department ID.                                 |
+| `user_office_id_column`       | `String`  | `'office_id'`               | The column name on the user model that stores the user's office ID.                                     |
+| `members_models_filters`      | `Array`   | `null`                      | An array of filters to apply when fetching members (e.g., `[['type' => 'staff']]`).                     |
 
-#### Fetching Memos
-Retrieve a list of memos using the `index` method in the `MemoController`. This method supports filtering and pagination.
+## API Endpoints
 
-#### Memo Status and Types
-Obtain available memo statuses and types via the following endpoints:
+All endpoints are prefixed with `/memo`.
 
-* **Memo Statuses:** `GET /memo/statuses`
-* **Memo Types:** `GET /memo/types`
+| Method   | URI                  | Action               | Description                                |
+| -------- | -------------------- | -------------------- | ------------------------------------------ |
+| `GET`    | `/boot`              | `boot`               | Fetches initial data for the frontend.     |
+| `GET`    | `/all`               | `index`              | Fetches a paginated list of memos.         |
+| `POST`   | `/`                  | `createOrUpdateMemo` | Creates or updates a memo.                 |
+| `GET`    | `/statuses`          | `memoStatus`         | Fetches the available memo statuses.       |
+| `GET`    | `/types`             | `memoTypes`          | Fetches the available memo types.          |
+| `GET`    | `/members`           | `members`            | Fetches the list of members/users.         |
+| `POST`   | `/reject`            | `rejectMemo`         | Rejects a memo.                            |
+| `POST`   | `/approve`           | `approveMemo`        | Approves a memo.                           |
+| `POST`   | `/make_comment`      | `saveComment`        | Adds a comment to a memo.                  |
+| `PUT`    | `/comment/{id}`      | `updateComment`      | Updates a comment.                         |
+| `DELETE` | `/comment/{id}`      | `deleteComment`      | Deletes a comment.                         |
+| `GET`    | `/departments`       | `departments`        | Fetches the list of departments.           |
+| `DELETE` | `/{id}`              | `deleteMemo`         | Deletes a memo.                            |
 
-### Routes
+## Events
 
-The following routes are available for memo functionality:
+The package fires the following events:
 
-#### Memo Management
-* `GET /memos`: List all memos
-* `POST /memo`: Create or update a memo
-
-#### Memo Reference Data
-* `GET /memo/statuses`: Get all memo statuses
-* `GET /memo/types`: Get all memo types
-
-### Contributing
-
-Contributions are welcome! Please:
-
-* Open an issue for suggestions or improvements
-* Submit a pull request for code changes
-
-### License
-
-This package is licensed under the MIT License. See the LICENSE file for details.
-
-**Additional Notes**
-
-* Ensure content fits your package's specific functionalities and configuration options.
-* Add additional features or setup instructions as necessary.
-* Consider creating a LICENSE file in your package if licensing is mentioned in the README.
+- `MemoApproved`
+- `MemoComment`
+- `MemoCreated`
+- `MemoRejected`
+- `MemoUpdated`

@@ -8,7 +8,7 @@ use Saidabdulsalam\LaravelMemo\Http\Resources\MemoResource;
 use Saidabdulsalam\LaravelMemo\Enums\MemoStatus;
 use Saidabdulsalam\LaravelMemo\Enums\MemoType;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Saidabdulsalam\LaravelMemo\Events\MemoApproved;
 use Saidabdulsalam\LaravelMemo\Events\MemoComment;
 use Saidabdulsalam\LaravelMemo\Events\MemoCreated;
@@ -61,7 +61,18 @@ class MemoController extends Controller
                 "owner_type" => get_class($user)
             ];
         }
-        $memos = Memo::filter($filter)->latest()->paginate(config('memo.pagination_length'));
+
+        $departmentId = $user->{config('memo.user_department_id_column')};
+        $officeId = $user->{config('memo.user_office_id_column')};
+
+        $memos = Memo::filter($filter)
+            ->where(function ($query) use ($departmentId, $officeId) {
+                $query->where('department_id', $departmentId)
+                      ->orWhere('office_id', $officeId);
+            })
+            ->latest()
+            ->paginate(config('memo.pagination_length'));
+
         return MemoResource::collection($memos);
     }
 
@@ -184,17 +195,16 @@ class MemoController extends Controller
             }
          
             if($is_memo_owner){
+                $memo->update($request->validated());
                 $comment = Comment::create([
                     'memo_id'=> $memo->id,
-                    'comment'=> $request->content,
+                    'comment'=> "Memo content updated",
                     'approver_id'=>$user->id,
                     'approver_type'=> get_class($user),
                     "department_id" =>  $request->department_id,
                     "type" => MemoType::getValue($request->type) ?? MemoType::REQUEST,
                 ]);
-                // $memo->update([
-                // ]);
-                event(new MemoUpdated($comment));
+                event(new MemoUpdated($memo));
             }
             
             $this->manageApprovers($memo, $request->input('approvers', []), $is_memo_owner, $request);
@@ -205,6 +215,8 @@ class MemoController extends Controller
             $memo->fill($data);
             $memo->status = MemoStatus::getValue($request->status) ?? MemoStatus::SUBMITTED;
             $memo->type = MemoType::getValue($request->type) ?? MemoType::REQUEST;
+            $memo->department_id = $owner->{config('memo.user_department_id_column')};
+            $memo->office_id = $owner->{config('memo.user_office_id_column')};
             $memo->save();
             $this->manageApprovers($memo, $request->input('approvers', []),true, $request);
             event(new MemoCreated($memo));
@@ -221,7 +233,9 @@ class MemoController extends Controller
         //     $memo->save();
         // }
     
-        return new MemoResource($memo);
+        return (new MemoResource($memo))
+            ->response()
+            ->setStatusCode($id ? 200 : 201);
     }
     
     protected function manageApprovers(Memo $memo, array $approvers, $is_memo_owner = true,  $request)
@@ -398,6 +412,34 @@ class MemoController extends Controller
         }
         // Return the updated memo resource
         return new MemoResource($memo); // Use fresh() to get the updated instance
+    }
+
+    public function deleteMemo($id)
+    {
+        $memo = Memo::findOrFail($id);
+        $memo->delete();
+
+        return response()->json(['message' => 'Memo deleted successfully']);
+    }
+
+    public function updateComment(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'comment' => 'required|string',
+        ]);
+
+        $comment = Comment::findOrFail($id);
+        $comment->update($validated);
+
+        return response()->json(['message' => 'Comment updated successfully']);
+    }
+
+    public function deleteComment($id)
+    {
+        $comment = Comment::findOrFail($id);
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted successfully']);
     }
 
 

@@ -18,6 +18,7 @@ class MemoRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'department_id'=>'nullable',
+            'office_id' => 'nullable',
             //'type' => 'sometimes|in:' . implode(',', MemoType::getKeys()),
             'content' => 'required|string',
             //'status' => 'sometimes|in:' . implode(',', MemoStatus::getKeys()),

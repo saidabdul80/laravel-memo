@@ -13,7 +13,8 @@ return new class extends Migration
             $table->unsignedBigInteger('owner_id');
             $table->string('owner_type');
             $table->string('title');
-            $table->text('department_id')->nullable();
+            $table->integer('office_id')->nullable();
+            $table->unsignedBigInteger('department_id')->nullable();
             $table->tinyInteger('type')->default(0);
             $table->tinyInteger('is_read')->default(0);
             $table->text('files')->nullable(); 

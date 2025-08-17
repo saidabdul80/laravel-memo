@@ -6,9 +6,18 @@
     "php": "^8.0",
     "illuminate/support": "^11.0"
   },
+  "require-dev": {
+    "orchestra/testbench": "^9.0",
+    "phpunit/phpunit": "^10.0"
+  },
   "autoload": {
     "psr-4": {
       "Saidabdulsalam\\LaravelMemo\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Saidabdulsalam\\LaravelMemo\\Tests\\": "tests/"
     }
   },
   "extra": {
@@ -20,6 +29,9 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  },
   "authors": [
     {
       "name": "Said Abdulsalam",

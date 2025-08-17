@@ -2,15 +2,17 @@
 
 namespace Saidabdulsalam\LaravelMemo\Models;
 
-use App\Enums\MemoStatus;
+use Saidabdulsalam\LaravelMemo\Enums\MemoStatus;
 use Illuminate\Database\Eloquent\Model;
 use Saidabdulsalam\LaravelMemo\Casts\ArrayCast;
 use Saidabdulsalam\LaravelMemo\Traits\DateTime;
 use Saidabdulsalam\LaravelMemo\Traits\Filterable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Memo extends Model
 {
-    use Filterable, DateTime;
-    protected $fillable = ['title', 'type', 'content', 'status', 'owner_id', 'owner_type','department_id'];
+    use Filterable, DateTime, HasFactory;
+    protected $fillable = ['title', 'type', 'content', 'status', 'owner_id', 'owner_type','department_id', 'office_id'];
 
     protected $casts =[
         'department_id'=>ArrayCast::class
@@ -100,5 +102,10 @@ class Memo extends Model
 
     public function comments(){
         return $this->hasMany(Comment::class, 'memo_id');
+    }
+
+    protected static function newFactory()
+    {
+        return \Saidabdulsalam\LaravelMemo\Tests\Factories\MemoFactory::new();
     }
 }
