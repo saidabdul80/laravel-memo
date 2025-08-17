@@ -20,7 +20,7 @@ composer require saidabdulsalam/laravel-memo
 Publish the configuration file:
 
 ```bash
-php artisan vendor:publish --tag=laravel-memo-config
+php artisan vendor:publish --tag=memo-config
 ```
 
 Run the database migrations:
@@ -44,6 +44,7 @@ The configuration file (`config/memo.php`) allows you to customize the package t
 | `user_department_id_column`   | `String`  | `'department_id'`           | The column name on the user model that stores the user's department ID.                                 |
 | `user_office_id_column`       | `String`  | `'office_id'`               | The column name on the user model that stores the user's office ID.                                     |
 | `members_models_filters`      | `Array`   | `null`                      | An array of filters to apply when fetching members (e.g., `[['type' => 'staff']]`).                     |
+| `load_routes`                 | `Boolean` | `true`                      | Whether to load the package's routes automatically.                                                     |
 
 ## API Endpoints
 

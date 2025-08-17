@@ -31,7 +31,9 @@ class MemoServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         // Load the routes
-        $this->loadRoutesFrom(__DIR__ . '/Routes/api.php');
+        if (config('memo.load_routes', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/Routes/api.php');
+        }
 
     }
 }

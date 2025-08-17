@@ -13,7 +13,10 @@
   "autoload": {
     "psr-4": {
       "Saidabdulsalam\\LaravelMemo\\": "src/"
-    }
+    },
+    "files": [
+      "src/helpers.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
