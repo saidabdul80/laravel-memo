@@ -46,6 +46,14 @@ The configuration file (`config/memo.php`) allows you to customize the package t
 | `members_models_filters`      | `Array`   | `null`                      | An array of filters to apply when fetching members (e.g., `[['type' => 'staff']]`).                     |
 | `load_routes`                 | `Boolean` | `true`                      | Whether to load the package's routes automatically.                                                     |
 
+## Load Routes with Helper
+
+To load the routes automatically, you can use the `memoRoutes()` helper function:
+
+```php
+memoRoutes();
+```
+
 ## API Endpoints
 
 All endpoints are prefixed with `/memo`.
