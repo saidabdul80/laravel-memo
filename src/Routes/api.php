@@ -6,6 +6,7 @@ use Saidabdulsalam\LaravelMemo\Http\Controllers\MemoController;
  Route::prefix('memo')->group(function () {
         Route::get('/boot', [MemoController::class, 'boot']);
         Route::get('/all', [MemoController::class, 'index']);
+        Route::get('/staffs', [MemoController::class, 'staffs']);
         Route::post('/', [MemoController::class, 'createOrUpdateMemo']);
         Route::get('/statuses', [MemoController::class, 'memoStatus']);
         Route::get('/types', [MemoController::class, 'memoTypes']);
@@ -17,5 +18,4 @@ use Saidabdulsalam\LaravelMemo\Http\Controllers\MemoController;
         Route::delete('/comment/{id}', [MemoController::class, 'deleteComment']);
         Route::get('/departments', [MemoController::class, 'departments']);
         Route::delete('/{id}', [MemoController::class, 'deleteMemo']);
-        Route::get('/staffs', [MemoController::class, 'staffs']);
     });
