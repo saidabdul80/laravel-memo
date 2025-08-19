@@ -393,5 +393,10 @@ class MemoController extends Controller
             }
         }
     }
+
+    public function memoTypes()
+    {
+        return response()->json(collect(MemoType::getKeys())->keys());
+    }
 }
         
