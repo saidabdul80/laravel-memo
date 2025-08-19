@@ -24,7 +24,7 @@ class MemoResource extends JsonResource
             'approvers' => ApproverResource::collection($this->approvers),
             'comments' => CommentResource::collection($this->comments),
             'owner' => $this->owner,
-            'time_at'=>$this->time_at,
+            'time_at'=> $this->time_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

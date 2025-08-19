@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MemoApprover extends Model
 {
-    protected $fillable = ['memo_id', 'approver_id', 'status', 'approver_type'];
+    protected $fillable = ['memo_id', 'approver_id', 'status', 'approver_type', 'forwarded'];
     protected $with = ['approver'];
     protected $appends = ['comments'];
 

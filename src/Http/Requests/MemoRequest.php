@@ -15,14 +15,16 @@ class MemoRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'title' => 'required|string|max:255',
-            'department_id'=>'nullable',
+        $rules = [
+            'department_id' => 'nullable|array',
             'office_id' => 'nullable',
-            //'type' => 'sometimes|in:' . implode(',', MemoType::getKeys()),
-            'content' => 'required|string',
-            //'status' => 'sometimes|in:' . implode(',', MemoStatus::getKeys()),
             'approvers' => 'array|nullable'
         ];
+
+    // always validate title/content when present; require them on create
+    $rules['title'] = $this->filled('id') ? 'sometimes|required|string|max:255' : 'required|string|max:255';
+    $rules['content'] = $this->filled('id') ? 'sometimes|required|string' : 'required|string';
+
+        return $rules;
     }
 }

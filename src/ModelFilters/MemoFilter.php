@@ -27,5 +27,19 @@ class MemoFilter extends ModelFilter
         return $this->where('owner_id', $ownerId);
     }
 
+    public function departmentId($departmentId)
+    {
+        
+        if(is_array($departmentId)){
+            $this->whereIn('department_id', $departmentId);
+        }
+        
+        return $this->where('department_id', $departmentId);
+    
+    }
 
+    public function officeId($officeId)
+    {
+        return $this->where('office_id', $officeId);
+    }
 }

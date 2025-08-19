@@ -11,4 +11,6 @@ return [
     "user_office_id_column"=>'office_id',
     "members_models_filters"=>null, //[  ["type"=>"staff"]  ]
     'load_routes' => true,
+    // Frontend base URL used in emails/notifications. Set via env or override in config.
+    'frontend_url' => env('MEMO_FRONTEND_URL', 'http://localhost:5173'),
 ];

@@ -15,7 +15,7 @@ class Memo extends Model
     protected $fillable = ['title', 'type', 'content', 'status', 'owner_id', 'owner_type','department_id', 'office_id'];
 
     protected $casts =[
-        'department_id'=>ArrayCast::class
+        'department_id' => 'array'
     ];
     protected $appends = ['departments', 'time_at'];
 

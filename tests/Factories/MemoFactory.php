@@ -18,7 +18,7 @@ class MemoFactory extends Factory
             'owner_id' => User::factory(),
             'owner_type' => User::class,
             'office_id' => 1,
-            'department_id' => 1,
+            'department_id' => [1],
         ];
     }
 }

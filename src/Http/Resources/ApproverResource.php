@@ -17,6 +17,7 @@ class ApproverResource extends JsonResource
             'status' => MemoStatus::getKey($this->status),
             'full_name' =>  $this->approver?->full_name,
             'memo_id' => $this->memo_id,
+            'forwarded' => $this->forwarded ?? 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
           //  'comments' => $this->comments,
