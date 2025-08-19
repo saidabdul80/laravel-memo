@@ -398,5 +398,11 @@ class MemoController extends Controller
     {
         return response()->json(collect(MemoType::getKeys())->keys());
     }
+
+    public function staffs()
+    {
+        $staffs = config('memo.members_models')::selectRaw('id,'. implode(',', config('memo.name',[])))->get();
+        return response()->json($staffs);
+    }
 }
         

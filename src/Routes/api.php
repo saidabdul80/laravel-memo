@@ -17,4 +17,5 @@ use Saidabdulsalam\LaravelMemo\Http\Controllers\MemoController;
         Route::delete('/comment/{id}', [MemoController::class, 'deleteComment']);
         Route::get('/departments', [MemoController::class, 'departments']);
         Route::delete('/{id}', [MemoController::class, 'deleteMemo']);
+        Route::get('/staffs', [MemoController::class, 'staffs']);
     });
